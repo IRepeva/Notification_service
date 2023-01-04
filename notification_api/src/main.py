@@ -11,6 +11,7 @@ from core.logger import LOGGING
 from core.settings import settings
 from api.v1 import templates
 from db import rabbit
+from notification_api.src.api.v1 import events
 
 _request_id = contextvars.ContextVar(
     'request_id', default=f'system:{uuid.uuid4()}'
@@ -70,6 +71,7 @@ async def shutdown():
 
 
 app.include_router(templates.router, prefix='/api/v1/template', tags=['template'])
+app.include_router(events.router, prefix='/api/v1/event', tags=['event'])
 
 if __name__ == '__main__':
     uvicorn.run(

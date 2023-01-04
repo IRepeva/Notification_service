@@ -15,3 +15,15 @@ class TemplateSchema(TemplateIn):
 
     class Config:
         orm_mode = True
+
+
+class Event(BaseModel):
+    users: list[UUID]
+    event: str
+    data: dict
+
+
+class Notification(Event):
+    notification_id: UUID = Field(default_factory=uuid4)
+    template: str
+    subject: str
