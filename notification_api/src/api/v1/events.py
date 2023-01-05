@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.postgres import get_db
 from db.rabbit import get_rabbit
-from models import schemas
+from models.schemas import Event, Notification
 from services.templates import TemplateService
 from services import publisher
 from services.publisher import get_queue
@@ -16,7 +16,7 @@ router = APIRouter()
 
 @router.post("/", summary="Create a notification")
 async def create_notification(
-        event: schemas.Event,
+        event: Event,
         session: AsyncSession = Depends(get_db),
         connection: pika.BlockingConnection = Depends(get_rabbit)
 ):
@@ -35,7 +35,7 @@ async def create_notification(
             status_code=HTTPStatus.NOT_FOUND,
             detail=f"Template for event {event.event} not found"
         )
-    notification = schemas.Notification(
+    notification = Notification(
         **event.dict(),
         template=template.text,
         subject=template.title
