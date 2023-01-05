@@ -1,0 +1,74 @@
+version: '3.4'
+
+services:
+  api:
+    container_name: api
+    build:
+      context: ./notification_api/
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - rabbitmq
+    ports:
+      - "8000"
+
+  db:
+    image: postgres:15.0-alpine
+    container_name: postgres
+#    volumes:
+#      - ./notification_api/src/db/postgres_volume:/var/lib/postgresql/data/
+    env_file:
+      - .env
+
+  rabbitmq:
+    image: rabbitmq:3.10-management
+    container_name: rabbitmq
+    ports:
+      - "5672"
+      - "15672"
+
+  nginx:
+    image: nginx:1.21.6
+    container_name: nginx
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/configs:/etc/nginx/conf.d:ro
+    ports:
+      - '80:80'
+    depends_on:
+      - api
+
+#  render:
+#    container_name: render
+#    build: render_engine/
+#    depends_on:
+#      - rabbitmq
+#    env_file:
+#      - .env
+
+
+#  notifications-db:
+#    container_name: notifications-db
+#    image: postgres:15.0-alpine
+#    env_file:
+#      - .env
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - notifications_db_volume:/var/lib/postgresql/data
+#      # Скрипт для инициализации таблицы в БД
+#      - ./sender/src/db/sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+
+#  email-sender:
+#    container_name: email-sender
+#    build: sender/
+#    env_file:
+#      - ./.env
+#    depends_on:
+#      - rabbitmq
+#      - notifications-db
+#
+#volumes:
+#  postgres_volume:
+#  notifications_db_volume:
