@@ -3,14 +3,14 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, Field
 
 
-class TemplateIn(BaseModel):
+class TemplateInput(BaseModel):
     event: str
     is_instant: bool
     title: str
     text: str
 
 
-class TemplateSchema(TemplateIn):
+class TemplateSchema(TemplateInput):
     id: int
 
     class Config:

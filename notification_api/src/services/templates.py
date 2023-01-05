@@ -1,4 +1,4 @@
-from models import models, schemas
+from models.schemas import TemplateInput
 from models.models import Template
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -16,16 +16,16 @@ class TemplateService:
     async def create_template(
             cls,
             session: AsyncSession,
-            template: schemas.TemplateIn
+            template: TemplateInput
     ) -> Template:
-        new_template = models.Template(**template.dict())
+        new_template = Template(**template.dict())
         return await cls.save_template(session, new_template)
 
     @classmethod
     async def edit_template(
             cls,
             session: AsyncSession,
-            template: schemas.TemplateIn,
+            template: TemplateInput,
             event: str
     ) -> Template:
         db_template = await cls.get_template_by_event(session, event)

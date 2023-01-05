@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.postgres import get_db
-from models.schemas import TemplateIn, TemplateSchema
+from models.schemas import TemplateInput, TemplateSchema
 from services.templates import TemplateService
 
 router = APIRouter()
@@ -16,7 +16,7 @@ router = APIRouter()
     summary="Create a template"
 )
 async def create_template(
-        new_template: TemplateIn,
+        new_template: TemplateInput,
         session: AsyncSession = Depends(get_db)
 ):
     """
@@ -47,7 +47,7 @@ async def create_template(
 )
 async def edit_template(
         event: str,
-        new_template: TemplateIn,
+        new_template: TemplateInput,
         session: AsyncSession = Depends(get_db)
 ):
     """
