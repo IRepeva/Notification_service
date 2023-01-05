@@ -3,10 +3,9 @@ import logging
 
 import pika
 import pika.exceptions
+from core.settings import settings
 from senders.base_sender import BaseSender
 from utils.backoff import backoff
-
-from core.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -48,12 +47,15 @@ class Worker:
     def on_queue_declared(self, frame):
         self.channel.basic_consume(settings.rabbit.queue, self.handle_delivery)
 
-    def handle_delivery(self, channel, method, parameters, message):
+    def handle_delivery(self, channel, method, parameters, body):
+        logger.info('New message %s %s', body)
+
         try:
-            message = json.loads(message)
+            message = json.loads(body)
         except json.JSONDecodeError:
+            logger.exception('JSON Decode error format: %s', body)
             channel.basic_ack(delivery_tag=method.delivery_tag)
-            logger.warning("RabbitMQ message can't be handled")
+            return
 
         to_send = self.template.parse_obj(message)
         self.sender.send(data=to_send)

@@ -2,9 +2,8 @@ from enum import Enum
 from functools import lru_cache
 from logging import config as logging_config
 
-from pydantic import BaseSettings, Field, SecretStr
-
 from core.logger import LOGGING
+from pydantic import BaseSettings, Field, SecretStr
 
 # LOGGING
 logging_config.dictConfig(LOGGING)
@@ -42,13 +41,8 @@ class RabbitMQSettings(BaseSettings):
 
 
 class Settings(BaseSettings):
-    # PROJECT
     project_name = Field('movies', env='PROJECT_NAME')
-
-    # QUEUE
     rabbit: RabbitMQSettings = RabbitMQSettings()
-
-    # DB
     postgres: PostgresSettings = PostgresSettings()
 
 
