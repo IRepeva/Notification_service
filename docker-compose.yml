@@ -16,8 +16,9 @@ services:
   db:
     image: postgres:15.0-alpine
     container_name: postgres
-#    volumes:
-#      - ./notification_api/src/db/postgres_volume:/var/lib/postgresql/data/
+    volumes:
+#      - postgres_volume:/var/lib/postgresql/data/
+      - ./deploy/postgres/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
     env_file:
       - .env
 
@@ -39,36 +40,10 @@ services:
     depends_on:
       - api
 
-#  render:
-#    container_name: render
-#    build: render_engine/
-#    depends_on:
-#      - rabbitmq
-#    env_file:
-#      - .env
-
-
-#  notifications-db:
-#    container_name: notifications-db
-#    image: postgres:15.0-alpine
-#    env_file:
-#      - .env
-#    ports:
-#      - "5432:5432"
-#    volumes:
-#      - notifications_db_volume:/var/lib/postgresql/data
-#      # Скрипт для инициализации таблицы в БД
-#      - ./sender/src/db/sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
-
-#  email-sender:
-#    container_name: email-sender
-#    build: sender/
-#    env_file:
-#      - ./.env
-#    depends_on:
-#      - rabbitmq
-#      - notifications-db
-#
-#volumes:
-#  postgres_volume:
-#  notifications_db_volume:
+  sender:
+    container_name: sender
+    build: sender/
+    env_file:
+      - ./.env
+    depends_on:
+      - rabbitmq
