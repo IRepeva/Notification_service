@@ -7,11 +7,10 @@ import uvicorn as uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
 
+from api.v1 import events, templates
 from core.logger import LOGGING
 from core.settings import settings
-from api.v1 import templates
 from db import rabbit
-from notification_api.src.api.v1 import events
 
 _request_id = contextvars.ContextVar(
     'request_id', default=f'system:{uuid.uuid4()}'

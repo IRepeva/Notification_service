@@ -33,7 +33,7 @@ async def create_notification(
     if not template:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail=f"Template for event {event} not found"
+            detail=f"Template for event {event.event} not found"
         )
     notification = schemas.Notification(
         **event.dict(),

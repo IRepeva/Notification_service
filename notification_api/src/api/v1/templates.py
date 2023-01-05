@@ -62,7 +62,7 @@ async def edit_template(
     if not template:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail=f"Template for event {template.event} not found"
+            detail=f"Template for event {new_template.event} not found"
         )
     return await TemplateService.edit_template(
         session=session, template=new_template, event=event
