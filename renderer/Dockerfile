@@ -10,4 +10,4 @@ RUN  pip install --upgrade pip && pip install -r requirements.txt
 
 COPY /src /src
 
-CMD ["python", "sender.py"]
+CMD ["python", "run.py"]

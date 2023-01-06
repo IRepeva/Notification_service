@@ -4,30 +4,31 @@ import logging
 import pika
 import pika.exceptions
 from core.settings import settings
-from senders.base_sender import BaseSender
+from services.message_handler import MessageHandler
+from services.publisher import RabbitPublisher
 from utils.backoff import backoff
 
 logger = logging.getLogger(__name__)
 
 
-class Worker:
-
-    def __init__(self, sender: BaseSender, template) -> None:
-        self.sender = sender
-        self.template = template
+class RabbitConsumer:
+    def __init__(
+            self,
+            publisher: RabbitPublisher,
+            renderer: MessageHandler,
+    ) -> None:
+        self.publisher = publisher
+        self.renderer = renderer
 
         credentials = pika.PlainCredentials(
             settings.rabbit.username,
             settings.rabbit.password.get_secret_value()
         )
         parameters = pika.ConnectionParameters(
-            settings.rabbit.host,
-            settings.rabbit.port,
-            credentials=credentials
+            settings.rabbit.host, settings.rabbit.port, credentials=credentials
         )
         self.connection = pika.SelectConnection(
-            parameters,
-            on_open_callback=self.on_connected
+            parameters, on_open_callback=self.on_connected
         )
         self.start()
 
@@ -37,7 +38,7 @@ class Worker:
     def on_channel_open(self, new_channel):
         self.channel = new_channel
         self.channel.queue_declare(
-            queue=settings.rabbit.queue,
+            queue=settings.rabbit.consumer_queue,
             durable=True,
             exclusive=False,
             auto_delete=False,
@@ -45,10 +46,12 @@ class Worker:
         )
 
     def on_queue_declared(self, frame):
-        self.channel.basic_consume(settings.rabbit.queue, self.handle_delivery)
+        self.channel.basic_consume(
+            settings.rabbit.consumer_queue, self.handle_delivery
+        )
 
-    def handle_delivery(self, channel, method, parameters, body):
-        logger.info('New message %s %s', body)
+    def handle_delivery(self, channel, method, properties, body):
+        logger.info('New message %s %s', body, properties.headers)
 
         try:
             message = json.loads(body)
@@ -57,11 +60,14 @@ class Worker:
             channel.basic_ack(delivery_tag=method.delivery_tag)
             return
 
-        to_send = self.template.parse_obj(message)
-        self.sender.send(data=to_send)
-        logger.warning("Message was sent")
+        logger.info('Message decoded %s', message)
+
+        notifications = self.renderer.process_message(message)
+        for notification in notifications:
+            self.publisher.publish(notification.dict(), properties.headers)
 
         channel.basic_ack(delivery_tag=method.delivery_tag)
+        logger.info('Message was processed.')
 
     @backoff()
     def start(self):
