@@ -2,7 +2,6 @@ import json
 import logging
 
 import aio_pika
-from core.settings import Queue
 
 logger = logging.getLogger(__name__)
 
@@ -22,4 +21,4 @@ async def publish(message, connection, queue):
 
 
 def get_queue(queue_sing):
-    return Queue.instant.name if queue_sing else Queue.not_instant.name
+    return 'render'
