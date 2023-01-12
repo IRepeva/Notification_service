@@ -1,8 +1,8 @@
 import logging
 
-from core.settings import settings
+from core.configuration import settings
 from services.consumer import RabbitConsumer
-from services.data_extractor import UserDataExtractor
+from services.data_extractor import UsersDataExtractor
 from services.message_handler import EmailMessageHandler
 from services.publisher import RabbitPublisher
 from services.renderer import JanjaTemplateRenderer
@@ -13,7 +13,7 @@ logger = logging.getLogger()
 
 if __name__ == '__main__':
     message_handler = EmailMessageHandler(
-        UserDataExtractor(settings.auth.url, settings.auth.authorization),
+        UsersDataExtractor(settings.auth.url, settings.auth.authorization),
         JanjaTemplateRenderer(),
         UrlShortener(),
     )

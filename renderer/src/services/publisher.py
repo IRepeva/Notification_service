@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 import pika
 import pika.exceptions
-from core.settings import settings
+from core.configuration import settings
 from utils.backoff import backoff, backoff_reconnect
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ class RabbitPublisher(BasePublisher):
             self.channel.basic_publish(
                 exchange=settings.rabbit.exchange,
                 routing_key=settings.rabbit.publisher_queue,
-                body=json.dumps(message),
+                body=json.dumps(message).encode(),
                 properties=pika.BasicProperties(
                     headers=headers,
                     delivery_mode=pika.DeliveryMode.Transient

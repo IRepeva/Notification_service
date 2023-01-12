@@ -3,7 +3,7 @@ import logging
 
 import pika
 import pika.exceptions
-from core.settings import settings
+from core.config import settings
 from senders.base_sender import BaseSender
 from utils.backoff import backoff
 
@@ -44,11 +44,11 @@ class Worker:
             callback=self.on_queue_declared
         )
 
-    def on_queue_declared(self, frame):
+    def on_queue_declared(self):
         self.channel.basic_consume(settings.rabbit.queue, self.handle_delivery)
 
     def handle_delivery(self, channel, method, parameters, body):
-        logger.info('New message %s %s', body)
+        logger.info('New message %s %s', body, parameters)
 
         try:
             message = json.loads(body)

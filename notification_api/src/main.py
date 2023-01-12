@@ -2,14 +2,14 @@ import contextvars
 import logging
 import uuid
 
-import pika
+import aio_pika
 import uvicorn as uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
 
 from api.v1 import events, templates
 from core.logger import LOGGING
-from core.settings import settings
+from core.settings import settings, Queue
 from db import rabbit
 
 _request_id = contextvars.ContextVar(
@@ -24,7 +24,7 @@ app = FastAPI(
 )
 
 
-@app.middleware("http")
+@app.middleware('http')
 async def request_id_middleware(request: Request, call_next):
     request_id = (
             request.headers.get('X-Request-Id')
@@ -50,23 +50,21 @@ logging.setLogRecordFactory(record_factory)
 
 @app.on_event('startup')
 async def startup():
-    credentials = pika.PlainCredentials(
-        username=settings.rabbit.user_name,
+    rabbit.rabbitmq = await aio_pika.connect_robust(
+        host=settings.rabbit.host,
+        login=settings.rabbit.user_name,
         password=settings.rabbit.password.get_secret_value()
     )
-    connection_parameters = pika.ConnectionParameters(
-        settings.rabbit.host,
-        settings.rabbit.port,
-        credentials=credentials
-    )
-    rabbit.rabbitmq = pika.BlockingConnection(connection_parameters)
-    rabbit.rabbitmq.channel().queue_declare('instant')
-    rabbit.rabbitmq.channel().queue_declare('not_instant')
+    channel = await rabbit.rabbitmq.channel()
+    queue = await channel.declare_queue(Queue.instant.name, durable=True)
+
+    channel = await rabbit.rabbitmq.channel()
+    queue = await channel.declare_queue(Queue.not_instant.name, durable=True)
 
 
 @app.on_event('shutdown')
 async def shutdown():
-    rabbit.rabbitmq.close()
+    await rabbit.rabbitmq.close()
 
 
 app.include_router(templates.router, prefix='/api/v1/template', tags=['template'])
