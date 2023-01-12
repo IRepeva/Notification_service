@@ -1,25 +1,24 @@
 import json
 import logging
 
-import pika
-import pika.exceptions
-
-from core.settings import settings, Queue
+import aio_pika
+from core.settings import Queue
 
 logger = logging.getLogger(__name__)
 
 
-def publish(message, connection, queue):
-    try:
-        channel = connection.channel()
-        channel.basic_publish(
-            exchange=settings.rabbit.exchange,
-            routing_key=queue,
-            body=json.dumps(message),
-        )
-        logger.info('Message was published')
-    except pika.exceptions.UnroutableError:
-        logger.error('Message was returned')
+async def publish(message, connection, queue):
+    async with connection:
+        try:
+            channel = await connection.channel()
+
+            await channel.default_exchange.publish(
+                aio_pika.Message(body=json.dumps(message).encode()),
+                routing_key=queue,
+            )
+            logger.info(f'Message {message} was published to queue {queue}')
+        except aio_pika.exceptions.PublishError:
+            logger.error('Message was returned')
 
 
 def get_queue(queue_sing):

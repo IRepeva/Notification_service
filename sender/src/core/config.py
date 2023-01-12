@@ -27,10 +27,10 @@ class RabbitMQSettings(BaseSettings):
 
 
 class EmailSettings(BaseSettings):
-    address: str
+    server: str
     port: int
     password: str
-    login: str
+    user: str
 
     class Config:
         env_prefix = "EMAIL_"
@@ -48,6 +48,3 @@ def get_settings() -> Settings:
 
 
 settings: Settings = get_settings()
-print('!!!!!!!!!!!!', settings.email.dict())
-print('!!!!!!!!!!!!', settings.rabbit.dict())
-print('!!!!!!!!!!!!', settings.postgres.dict())

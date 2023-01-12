@@ -3,7 +3,8 @@ import logging
 
 import pika
 import pika.exceptions
-from core.settings import settings
+from core.configuration import settings
+from pika.channel import Channel
 from services.message_handler import MessageHandler
 from services.publisher import RabbitPublisher
 from utils.backoff import backoff
@@ -32,10 +33,10 @@ class RabbitConsumer:
         )
         self.start()
 
-    def on_connected(self, connection):
+    def on_connected(self, connection: pika.SelectConnection):
         connection.channel(on_open_callback=self.on_channel_open)
 
-    def on_channel_open(self, new_channel):
+    def on_channel_open(self, new_channel: Channel):
         self.channel = new_channel
         self.channel.queue_declare(
             queue=settings.rabbit.consumer_queue,
@@ -45,12 +46,12 @@ class RabbitConsumer:
             callback=self.on_queue_declared
         )
 
-    def on_queue_declared(self, frame):
+    def on_queue_declared(self):
         self.channel.basic_consume(
             settings.rabbit.consumer_queue, self.handle_delivery
         )
 
-    def handle_delivery(self, channel, method, properties, body):
+    def handle_delivery(self, channel: Channel, method, properties, body):
         logger.info('New message %s %s', body, properties.headers)
 
         try:

@@ -1,12 +1,11 @@
 from psycopg2.extras import DictCursor
 
-from core.settings import settings
-from utils.connections import create_pg_conn
+from core.config import settings
+from models.models import EmailTemplate
+from senders.email_sender import EmailSender
 from services.database_service import PostgresService
 from services.worker import Worker
-from senders.email_sender import EmailSender
-from models.models import EmailTemplate
-
+from utils.connections import create_pg_conn
 
 if __name__ == '__main__':
     pg_settings = settings.postgres.dict()

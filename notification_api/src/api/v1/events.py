@@ -1,15 +1,13 @@
 from http import HTTPStatus
 
 import pika
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from db.postgres import get_db
 from db.rabbit import get_rabbit
+from fastapi import APIRouter, Depends, HTTPException
 from models.schemas import Event, Notification
-from services.templates import TemplateService
 from services import publisher
-from services.publisher import get_queue
+from services.templates import TemplateService
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
@@ -40,9 +38,9 @@ async def create_notification(
         template=template.text,
         subject=template.title
     )
-    publisher.publish(
+    await publisher.publish(
         message=notification.json(),
         connection=connection,
-        queue=get_queue(template.is_instant)
+        queue=publisher.get_queue(template.is_instant)
     )
     return HTTPStatus.OK

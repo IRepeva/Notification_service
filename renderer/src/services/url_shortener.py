@@ -1,5 +1,5 @@
 import requests
-from core.settings import settings
+from core.configuration import settings
 from requests.structures import CaseInsensitiveDict
 
 

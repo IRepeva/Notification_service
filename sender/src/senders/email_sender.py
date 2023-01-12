@@ -3,9 +3,8 @@ import smtplib
 import uuid
 from email.message import EmailMessage
 
+from core.config import settings
 from models.models import EmailTemplate, Notification
-
-from core.settings import settings
 from senders.base_sender import BaseSender
 
 logger = logging.getLogger(__name__)
@@ -13,8 +12,14 @@ logger = logging.getLogger(__name__)
 
 class EmailSender(BaseSender):
     def _get_smtp_server_connection(self):
-        server = smtplib.SMTP_SSL(settings.email.address, settings.email.port)
-        server.login(settings.email.login, settings.email.password)
+        if settings.email.server == 'mailhog':
+            server = smtplib.SMTP(settings.email.server, settings.email.port)
+        else:
+            server = smtplib.SMTP_SSL(self.config.server, settings.email.port)
+            server.login(
+                settings.email.user,
+                settings.email.password.get_secret_value()
+            )
         return server
 
     def send(self, data: EmailTemplate):

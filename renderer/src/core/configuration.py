@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import BaseSettings, SecretStr
+from pydantic import BaseSettings, SecretStr, Field
 
 
 class RabbitMQSettings(BaseSettings):
@@ -11,6 +11,7 @@ class RabbitMQSettings(BaseSettings):
     exchange: str = ''
     consumer_queue: str
     publisher_queue: str
+    queue: str
 
     class Config:
         env_prefix = "RABBIT_"
@@ -31,6 +32,7 @@ class ShortenerSettings(BaseSettings):
 
 
 class Settings(BaseSettings):
+    batch_size: int = Field(1000, env='BATCH_SIZE')
     rabbit: RabbitMQSettings = RabbitMQSettings()
     shortener: ShortenerSettings = ShortenerSettings()
     auth: AuthSettings = AuthSettings()
